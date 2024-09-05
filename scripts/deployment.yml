@@ -1,1 +1,76 @@
-# Your Solution
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: book-catalog
+  labels:
+    app: book-catalog
+spec:
+  replicas: 2  # Number of pods
+  selector:
+    matchLabels:
+      app: book-catalog
+  template:
+    metadata:
+      labels:
+        app: book-catalog
+    spec:
+      containers:
+      - name: book-catalog
+        image: <YOUR_ACR_NAME>.azurecr.io/book_catalog:latest  # Image from ACR
+        ports:
+        - containerPort: 80
+        env:
+        - name: DATABASE_URL  # postgresql://sit722_part3_izb0_user:GROfYpWn8nEqz5Fwc8k8XNh8jFYCHWSC@dpg-crchi9jtq21c73f81dag-a.oregon-postgres.render.com/sit722_part3_izb0
+          value: "postgresql://sit722_part3_izb0_user:sit722_part3_izb0_user@dpg-crchi9jtq21c73f81dag-a:5432/sit722_part3_izb0"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: book-catalog-service
+spec:
+  type: LoadBalancer  # Exposes service externally
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: book-catalog
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-management
+  labels:
+    app: inventory-management
+spec:
+  replicas: 2  # Number of pods
+  selector:
+    matchLabels:
+      app: inventory-management
+  template:
+    metadata:
+      labels:
+        app: inventory-management
+    spec:
+      containers:
+      - name: inventory-management
+        image: <YOUR_ACR_NAME>.azurecr.io/inventory_management:latest  # Image from ACR
+        ports:
+        - containerPort: 80
+        env:
+        - name: DATABASE_URL  # Environment variable for database URL
+          value: "postgresql://<DB_USER>:<DB_PASSWORD>@<DB_HOST>:5432/<DB_NAME>"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-management-service
+spec:
+  type: LoadBalancer  # Exposes service externally
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: inventory-management
