@@ -1,7 +1,7 @@
 # Dockerfile for book_catalog microservice
 FROM --platform=linux/amd64 python:3.8-slim
 WORKDIR /usr/src/app
-COPY . /usr/src/app
+COPY book_catalog /usr/src/app
 RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 80
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
