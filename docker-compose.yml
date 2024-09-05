@@ -1,39 +1,40 @@
-version: '3.8'
+version: '3'
 
 services:
-  book_catalog:
-    build:
-      context: .
-      dockerfile: Dockerfile.book_catalog
-    ports:
-      - "8001:8000"
-    environment:
-      DATABASE_URL: "postgresql://book_catalog_n60i_user:8prUeK5Mdv7yg1bCAPb165m36uefjjmq@dpg-crclg63v2p9s73ci46hg-a.oregon-postgres.render.com/book_catalog_n60i"
-    networks:
-      - mynetwork
-
-  inventory_management:
-    build:
-      context: .
-      dockerfile: Dockerfile.inventory_management
-    ports:
-      - "8002:8000"
-    environment:
-      DATABASE_URL: "postgresql://book_catalog_n60i_user:8prUeK5Mdv7yg1bCAPb165m36uefjjmq@dpg-crclg63v2p9s73ci46hg-a.oregon-postgres.render.com/book_catalog_n60i"
-    networks:
-      - mynetwork
 
   postgres:
     image: postgres:13
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_USER: book_catalog_n60i_user
       POSTGRES_PASSWORD: 8prUeK5Mdv7yg1bCAPb165m36uefjjmq
       POSTGRES_DB: book_catalog_n60i
-    ports:
-      - "5432:5432"
-    networks:
-      - mynetwork
+    restart: always
 
-networks:
-  mynetwork:
-    driver: bridge
+  book_catalog:
+    build:
+      context: ./book_catalog
+      dockerfile: Dockerfile
+    container_name: book-catalog
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=postgresql://book_catalog_n60i_user:8prUeK5Mdv7yg1bCAPb165m36uefjjmq@postgres-db:5432/book_catalog_n60i
+    depends_on:
+      - postgres
+    restart: "no"
+
+  inventory_management:
+    build:
+      context: ./inventory_management
+      dockerfile: Dockerfile
+    container_name: inventory-management
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=postgresql://book_catalog_n60i_user:8prUeK5Mdv7yg1bCAPb165m36uefjjmq@postgres-db:5432/book_catalog_n60i
+    depends_on:
+      - postgres
+    restart: "no"
