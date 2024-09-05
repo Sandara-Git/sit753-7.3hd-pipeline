@@ -1,11 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: book-catalog
-  labels:
-    app: book-catalog
+  name: book-catalog-deployment
 spec:
-  replicas: 2  # Number of pods
+  replicas: 1
   selector:
     matchLabels:
       app: book-catalog
@@ -16,35 +14,21 @@ spec:
     spec:
       containers:
       - name: book-catalog
-        image: <YOUR_ACR_NAME>.azurecr.io/book_catalog:latest  # Image from ACR
+        image: sit722week0772p.azurecr.io/book_catalog:1
         ports:
-        - containerPort: 80
+        - containerPort: 8000
         env:
-        - name: DATABASE_URL  # postgresql://sit722_part3_izb0_user:GROfYpWn8nEqz5Fwc8k8XNh8jFYCHWSC@dpg-crchi9jtq21c73f81dag-a.oregon-postgres.render.com/sit722_part3_izb0
-          value: "postgresql://sit722_part3_izb0_user:sit722_part3_izb0_user@dpg-crchi9jtq21c73f81dag-a:5432/sit722_part3_izb0"
+        - name: DATABASE_URL
+          value: "postgresql://book_catalog_n60i_user:8prUeK5Mdv7yg1bCAPb165m36uefjjmq@dpg-crclg63v2p9s73ci46hg-a.oregon-postgres.render.com/book_catalog_n60i"
 
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: book-catalog-service
-spec:
-  type: LoadBalancer  # Exposes service externally
-  ports:
-  - port: 80
-    targetPort: 80
-  selector:
-    app: book-catalog
 
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: inventory-management
-  labels:
-    app: inventory-management
+  name: inventory-management-deployment
 spec:
-  replicas: 2  # Number of pods
+  replicas: 1
   selector:
     matchLabels:
       app: inventory-management
@@ -55,22 +39,39 @@ spec:
     spec:
       containers:
       - name: inventory-management
-        image: <YOUR_ACR_NAME>.azurecr.io/inventory_management:latest  # Image from ACR
+        image: sit722week0772p.azurecr.io/inventory_management:1
         ports:
-        - containerPort: 80
+        - containerPort: 8000
         env:
-        - name: DATABASE_URL  # Environment variable for database URL
-          value: "postgresql://<DB_USER>:<DB_PASSWORD>@<DB_HOST>:5432/<DB_NAME>"
+        - name: DATABASE_URL
+          value: "postgresql://book_catalog_n60i_user:8prUeK5Mdv7yg1bCAPb165m36uefjjmq@dpg-crclg63v2p9s73ci46hg-a.oregon-postgres.render.com/book_catalog_n60i"
 
 ---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: book-catalog-service
+spec:
+  selector:
+    app: book-catalog
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: LoadBalancer
+
+---
+
 apiVersion: v1
 kind: Service
 metadata:
   name: inventory-management-service
 spec:
-  type: LoadBalancer  # Exposes service externally
-  ports:
-  - port: 80
-    targetPort: 80
   selector:
     app: inventory-management
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: LoadBalancer
