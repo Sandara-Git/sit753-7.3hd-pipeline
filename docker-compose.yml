@@ -17,6 +17,7 @@ services:
     build:
       context: ./book_catalog
       dockerfile: Dockerfile
+    image: sit722week0772p.azurecr.io/book_catalog:latest
     container_name: book-catalog
     ports:
       - "8001:8000"
@@ -30,6 +31,7 @@ services:
     build:
       context: ./inventory_management
       dockerfile: Dockerfile
+    image: sit722week0772p.azurecr.io/inventory_management:latest
     container_name: inventory-management
     ports:
       - "8002:8000"
