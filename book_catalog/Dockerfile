@@ -6,8 +6,7 @@ FROM --platform=linux/amd64 python:3.11-slim
 WORKDIR /usr/src/app
 
 # Copy the book_catalog directory contents into the container
-COPY book_catalog/ /usr/src/app
-COPY main.py /usr/src/app/
+COPY . /usr/src/app
 
 # Install the required dependencies
 RUN pip install --no-cache-dir -r requirements.txt
@@ -15,6 +14,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Expose the port the app runs on
 EXPOSE 8000
 
+ENV DATABASE_URL=postgresql://admin:E5OJuKRE14iotwfsvHwJeqsjaKK1eKmO@dpg-cq0nb2aju9rs73b0500g-a.oregon-postgres.render.com/part2
+
 # Run the FastAPI application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
 
