@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Expose the port the app runs on
 EXPOSE 8000
 
-ENV DATABASE_URL=postgresql://admin:E5OJuKRE14iotwfsvHwJeqsjaKK1eKmO@dpg-cq0nb2aju9rs73b0500g-a.oregon-postgres.render.com/part2
+ENV DATABASE_URL=postgresql://book_catalog_n60i_user:8prUeK5Mdv7yg1bCAPb165m36uefjjmq@dpg-crclg63v2p9s73ci46hg-a.oregon-postgres.render.com/book_catalog_n60i
 
 # Run the FastAPI application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
