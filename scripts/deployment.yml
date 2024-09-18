@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: book-catalog
-        image: sit722week0772p.azurecr.io/book_catalog:latest
+        image: sit722week0772c.azurecr.io/book_catalog:latest
         ports:
         - containerPort: 8000
         env:
@@ -40,7 +40,7 @@ spec:
     spec:
       containers:
       - name: inventory-management
-        image: sit722week0772p.azurecr.io/inventory_management:latest
+        image: sit722week0772c.azurecr.io/inventory_management:latest
         ports:
         - containerPort: 8000
         env:
