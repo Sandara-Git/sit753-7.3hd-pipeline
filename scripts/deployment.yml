@@ -17,7 +17,7 @@ spec:
       - name: book-catalog
         image: sit722week0772c.azurecr.io/book_catalog:latest
         ports:
-        - containerPort: 8001
+        - containerPort: 8000
         env:
         - name: DATABASE_URL
           value: "postgresql://sit772_part3_user:8RkWhS2lk6zAjGBYyLwTOp1PBbpGGCge@dpg-crl3aid6l47c73fqrq60-a.oregon-postgres.render.com/sit772_part3"
@@ -58,7 +58,7 @@ spec:
     app: book-catalog
   ports:
     - protocol: TCP
-      port: 80
+      port: 8000
       targetPort: 8000
   type: LoadBalancer
 
@@ -73,6 +73,6 @@ spec:
     app: inventory-management
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 8001
+      port: 8000
+      targetPort: 8000
   type: LoadBalancer
