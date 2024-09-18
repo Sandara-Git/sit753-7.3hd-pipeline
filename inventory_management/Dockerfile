@@ -14,7 +14,7 @@ WORKDIR /usr/src/app
 # Copy the inventory_management directory contents into the container
 COPY . /usr/src/app
 
-# Install the required dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose the port the app runs on
