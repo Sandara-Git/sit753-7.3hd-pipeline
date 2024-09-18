@@ -6,15 +6,15 @@ FROM --platform=linux/amd64 python:3.11-slim
 WORKDIR /usr/src/app
 
 # Copy the book_catalog directory contents into the container
-COPY . /usr/src/app
-
+COPY . /usr/src/app/app
+COPY . /usr/src/main.py/app
 # Install the required dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose the port the app runs on
 EXPOSE 8000
 
-ENV DATABASE_URL=postgresql://book_catalog_n60i_user:8prUeK5Mdv7yg1bCAPb165m36uefjjmq@dpg-crclg63v2p9s73ci46hg-a.oregon-postgres.render.com/book_catalog_n60i
+ENV postgresql://sit772_part3_user:8RkWhS2lk6zAjGBYyLwTOp1PBbpGGCge@dpg-crl3aid6l47c73fqrq60-a.oregon-postgres.render.com/sit772_part3
 
 # Run the FastAPI application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
