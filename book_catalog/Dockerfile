@@ -9,6 +9,7 @@ WORKDIR /usr/src/app
 COPY . /usr/src/app/app
 COPY . /usr/src/main.py/app
 # Install the required dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose the port the app runs on
