@@ -17,7 +17,7 @@ spec:
       - name: book-catalog
         image: sit722week0772c.azurecr.io/book_catalog:latest
         ports:
-        - containerPort: 8000
+        - containerPort: 8001
         env:
         - name: DATABASE_URL
           value: "postgresql://sit772_part3_user:8RkWhS2lk6zAjGBYyLwTOp1PBbpGGCge@dpg-crl3aid6l47c73fqrq60-a.oregon-postgres.render.com/sit772_part3"
