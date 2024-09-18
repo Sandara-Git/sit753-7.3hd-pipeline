@@ -35,7 +35,7 @@ services:
     image: sit722week0772c.azurecr.io/inventory_management:latest
     container_name: inventory-management
     ports:
-      - "8001:8000"
+      - "8001:8001"
     environment:
       - DATABASE_URL=postgresql://sit772_part3_user:8RkWhS2lk6zAjGBYyLwTOp1PBbpGGCge@dpg-crl3aid6l47c73fqrq60-a.oregon-postgres.render.com/sit772_part3
     depends_on:
