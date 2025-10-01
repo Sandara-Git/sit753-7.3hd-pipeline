@@ -1,6 +1,6 @@
 pipeline {
   agent any
-  options { timestamps(); ansiColor('xterm') }
+  options { ansiColor('xterm') }   
   environment { SCANNER_HOME = tool 'sonar-scanner' }
 
   stages {
