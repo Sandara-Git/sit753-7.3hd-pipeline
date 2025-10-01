@@ -1,44 +1,6 @@
-version: '3'
-
 services:
-
-  postgres:
-    image: postgres:13
-    container_name: postgres-db
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: sit772_part3_user
-      POSTGRES_PASSWORD: 8RkWhS2lk6zAjGBYyLwTOp1PBbpGGCge8prUeK5Mdv7yg1bCAPb165m36uefjjmq
-      POSTGRES_DB: bsit772_part3
-    restart: always
-
-  book_catalog:
-    build:
-      context: ./book_catalog
-      dockerfile: Dockerfile
-    image: sit722week0772c.azurecr.io/book_catalog:latest
-    container_name: book-catalog
+  web:
+    image: myapp:latest
     ports:
       - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://sit772_part3_user:8RkWhS2lk6zAjGBYyLwTOp1PBbpGGCge@dpg-crl3aid6l47c73fqrq60-a.oregon-postgres.render.com/sit772_part3
-    depends_on:
-      - postgres
-    restart: "no"
-    platform: linux/amd64
-
-  inventory_management:
-    build:
-      context: ./inventory_management
-      dockerfile: Dockerfile
-    image: sit722week0772c.azurecr.io/inventory_management:latest
-    container_name: inventory-management
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://sit772_part3_user:8RkWhS2lk6zAjGBYyLwTOp1PBbpGGCge@dpg-crl3aid6l47c73fqrq60-a.oregon-postgres.render.com/sit772_part3
-    depends_on:
-      - postgres
-    restart: "no"
-    platform: linux/amd64
+    restart: unless-stopped

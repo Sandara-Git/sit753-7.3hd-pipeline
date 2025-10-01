@@ -1,105 +1,97 @@
 pipeline {
   agent any
-
-  options {
-    timestamps()
-  }
-
-  environment {
-    // Set any needed env vars or credentials IDs here
-    // DOCKERHUB_CRED = credentials('dockerhub-cred-id')
-    // SONAR_TOKEN    = credentials('sonar-token-id')
-  }
+  options { timestamps(); ansiColor('xterm') }
+  environment { SCANNER_HOME = tool 'sonar-scanner' }
 
   stages {
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
-    }
+    stage('Checkout') { steps { checkout scm } }
 
     stage('Build') {
       steps {
-        sh 'echo "Build step — replace with your real build (e.g., docker build, mvn, npm)"'
-        // examples:
-        // sh 'docker build -t myapp:latest .'
-        // sh 'npm ci && npm run build'
-        // sh 'mvn -B -DskipTests package'
+        sh '''
+          echo "== Build Docker image =="
+          docker build -t myapp:latest .
+        '''
       }
     }
 
     stage('Test') {
       steps {
-        sh 'echo "Test step — replace with your tests (e.g., pytest, npm test, mvn test)"'
-        // examples:
-        // sh 'pytest -q'
-        // sh 'npm test -- --watch=false'
-        // sh 'mvn -B test'
+        sh '''
+          echo "== Run tests with coverage =="
+          coverage run -m pytest -q
+          coverage xml -o coverage.xml || true
+        '''
       }
       post {
         always {
-          // If you have JUnit XML results:
-          // junit 'reports/junit/*.xml'
+          junit allowEmptyResults: true, testResults: 'tests/**/junit*.xml'
+          archiveArtifacts artifacts: 'coverage.xml', allowEmptyArchive: true
         }
       }
     }
 
     stage('Code Quality') {
+      environment { SONAR_TOKEN = credentials('sonar-token-id') }
       steps {
-        sh 'echo "Code Quality — e.g., sonar-scanner or eslint/flake8"'
-        // examples:
-        // sh 'sonar-scanner -Dsonar.projectKey=myapp -Dsonar.host.url=http://<sonar-host>:9000 -Dsonar.login=$SONAR_TOKEN'
-        // sh 'flake8 .'
-        // sh 'npx eslint .'
+        withSonarQubeEnv('local-sonar') {
+          sh '''
+            echo "== SonarQube scan =="
+            ${SCANNER_HOME}/bin/sonar-scanner -Dsonar.login=$SONAR_TOKEN
+          '''
+        }
       }
     }
 
     stage('Security') {
       steps {
-        sh 'echo "Security Scan — e.g., trivy/snyk/bandit"'
-        // examples:
-        // sh 'trivy fs --exit-code 0 --no-progress . || true'
-        // sh 'trivy image myapp:latest || true'
-        // sh 'bandit -r . || true'
+        sh '''
+          echo "== Trivy FS scan (repo) =="
+          trivy fs --exit-code 0 --no-progress . || true
+          echo "== Trivy image scan =="
+          trivy image --exit-code 0 --no-progress myapp:latest || true
+        '''
       }
     }
 
     stage('Deploy (Staging)') {
       when { branch 'main' }
       steps {
-        sh 'echo "Deploy to staging — e.g., docker compose up -d, kubectl apply -f ..."' 
+        sh '''
+          echo "== Deploy to staging =="
+          docker compose down || true
+          docker compose up -d
+          docker ps
+          echo "== Health check =="
+          curl -sS http://localhost:8000/health || true
+        '''
       }
     }
 
     stage('Release') {
       when { branch 'main' }
+      environment { DOCKERHUB = credentials('dockerhub-cred-id') }
       steps {
-        sh 'echo "Release — tag & push artifacts/images (Docker Hub/ACR/etc.)"'
-        // example:
-        // withCredentials([usernamePassword(credentialsId: 'dockerhub-cred-id', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-        //   sh 'echo "$PASS" | docker login -u "$USER" --password-stdin'
-        //   sh 'docker tag myapp:latest myuser/myapp:${BUILD_NUMBER}'
-        //   sh 'docker push myuser/myapp:${BUILD_NUMBER}'
-        // }
+        sh '''
+          echo "${DOCKERHUB_PSW}" | docker login -u "${DOCKERHUB_USR}" --password-stdin
+          IMAGE="docker.io/${DOCKERHUB_USR}/myapp"
+          docker tag myapp:latest $IMAGE:${BUILD_NUMBER}
+          docker tag myapp:latest $IMAGE:latest
+          docker push $IMAGE:${BUILD_NUMBER}
+          docker push $IMAGE:latest
+        '''
       }
     }
 
     stage('Monitoring Hook') {
       steps {
-        sh 'echo "Notify/monitoring hook — e.g., curl to Datadog/New Relic/Slack"'
+        sh 'echo "Monitoring placeholder — add Slack/Datadog/Prometheus pushgateway as needed"'
       }
     }
   }
 
   post {
-    success {
-      echo 'Pipeline finished successfully '
-    }
-    failure {
-      echo 'Pipeline failed '
-    }
-    always {
-      archiveArtifacts artifacts: '**/build/**', allowEmptyArchive: true
-    }
+    success { echo "Pipeline succeeded" }
+    failure { echo "Pipeline failed" }
   }
 }
