@@ -18,14 +18,22 @@ pipeline {
     stage('Test') {
       steps {
         sh '''
-          echo "== Run tests with coverage =="
-          coverage run -m pytest -q
-          coverage xml -o coverage.xml || true
+          echo "== Run tests with coverage inside container =="
+          mkdir -p tests/reports
+          docker run --rm \
+            -v "$PWD":/workspace \
+            -w /workspace \
+            myapp:latest \
+            bash -lc "set -e
+                      python3 --version
+                      pip show pytest coverage || true
+                      coverage run -m pytest -q --junitxml=tests/reports/junit.xml
+                      coverage xml -o coverage.xml"
         '''
       }
       post {
         always {
-          junit allowEmptyResults: true, testResults: 'tests/**/junit*.xml'
+          junit allowEmptyResults: true, testResults: 'tests/reports/junit.xml'
           archiveArtifacts artifacts: 'coverage.xml', allowEmptyArchive: true
         }
       }
