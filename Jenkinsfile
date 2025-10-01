@@ -19,14 +19,16 @@ pipeline {
       steps {
         sh '''
           echo "== Run tests with coverage inside container =="
-        mkdir -p tests/reports
-        docker run --rm \
-          -v "$PWD":/workspace \
-          -w /workspace \
-          myapp:latest \
-          bash -lc "set -e
-                    coverage run -m pytest -q --junitxml=tests/reports/junit.xml
-                    coverage xml -o coverage.xml"
+          mkdir -p tests/reports
+          docker run --rm \
+            -v "$PWD":/workspace \
+            -w /workspace \
+            myapp:latest \
+            bash -lc "set -e
+                      python3 --version
+                      pip show pytest coverage || true
+                      coverage run -m pytest -q --junitxml=tests/reports/junit.xml
+                      coverage xml -o coverage.xml"
         '''
       }
       post {
