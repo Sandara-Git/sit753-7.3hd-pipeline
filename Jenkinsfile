@@ -45,7 +45,7 @@ pipeline {
           echo "== After test run, show report files =="
           ls -la tests/reports || true
           ls -la coverage.xml || true
-    '''
+        '''
       }
       post {
         always {
