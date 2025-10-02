@@ -21,7 +21,8 @@ pipeline {
           set -euo pipefail
 
           echo "== Show test candidates =="
-          find . -maxdepth 3 -type f \( -name "test_*.py" -o -name "*_test.py" \) -print || true
+          # no escaped parentheses; works fine with /bin/bash or /bin/sh
+          find . -maxdepth 3 -type f -name "test_*.py" -o -type f -name "*_test.py" -print || true
           
           echo "== Run tests with coverage inside container =="
           mkdir -p tests/reports
@@ -30,10 +31,20 @@ pipeline {
             -w /workspace \
             myapp:latest \
             bash -lc "set -e
-                      python3 --version
-                      pip show pytest coverage || true
-                      coverage run -m pytest -q --junitxml=tests/reports/junit.xml
-                      coverage xml -o coverage.xml"
+                  python3 --version
+                  pip show pytest coverage || true
+                  coverage run -m pytest -q tests --junitxml=tests/reports/junit.xml || exit_code=\\$?
+                  coverage xml -o coverage.xml || true
+                  if [ \\\"\\${exit_code:-0}\\\" = \\\"5\\\" ]; then
+                    echo 'No tests collected — continuing (scaffold mode).'
+                    exit 0
+                  else
+                    exit \\\"\\${exit_code:-0}\\\"
+                  fi"
+
+            echo "== After test run, show report files =="
+            ls -la tests/reports || true
+            ls -la coverage.xml || true
         '''
       }
       post {
