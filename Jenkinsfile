@@ -17,14 +17,14 @@ pipeline {
 
     stage('Test') {
       steps {
-        sh '''
-          set -eo pipefail
-          echo "== Show test candidates =="
-          find . -maxdepth 3 -type f \\( -name "test_*.py" -o -name "*_test.py" \\) -print || true
+        sh '''#!/usr/bin/env bash
+          set -euo pipefail
 
+          echo "== Show test candidates =="
+          find . -maxdepth 3 -type f \( -name "test_*.py" -o -name "*_test.py" \) -print || true
+          
           echo "== Run tests with coverage inside container =="
           mkdir -p tests/reports
-
           docker run --rm \
             -v "$PWD":/workspace \
             -w /workspace \
@@ -32,19 +32,8 @@ pipeline {
             bash -lc "set -e
                       python3 --version
                       pip show pytest coverage || true
-                      # run tests explicitly in ./tests so discovery can't miss them
-                      coverage run -m pytest -q tests --junitxml=tests/reports/junit.xml || exit_code=\\$?
-                      coverage xml -o coverage.xml || true
-                      # treat 'no tests collected' (5) as success while scaffolding; otherwise propagate exit
-                      if [ \\\"\\${exit_code}\\\" = \\\"5\\\" ]; then
-                        echo 'No tests collected — continuing (scaffold mode).'
-                        exit 0
-                      else
-                        exit \\\"\\${exit_code:-0}\\\"
-                      fi"
-          echo "== After test run, show report files =="
-          ls -la tests/reports || true
-          ls -la coverage.xml || true
+                      coverage run -m pytest -q --junitxml=tests/reports/junit.xml
+                      coverage xml -o coverage.xml"
         '''
       }
       post {
