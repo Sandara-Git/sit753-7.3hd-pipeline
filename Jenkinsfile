@@ -109,9 +109,17 @@ pipeline {
           echo "== Deploy to staging =="
           docker compose down || true
           docker compose up -d
-          docker ps
-          echo "== Health check =="
-          curl -sS http://localhost:8000/health || true
+          echo "== Health check (retry up to 30s) =="
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/health >/dev/null 2>&1 || \
+              curl -fsS http://localhost:8000/        >/dev/null 2>&1; then
+              echo "App is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "App did not become healthy in time"
+          exit 1
         '''
       }
     }
@@ -123,6 +131,7 @@ pipeline {
         sh '''
           echo "${DOCKERHUB_PSW}" | docker login -u "${DOCKERHUB_USR}" --password-stdin
           IMAGE="docker.io/${DOCKERHUB_USR}/myapp"
+          echo "Pushing ${IMAGE} ..."
           docker tag myapp:latest $IMAGE:${BUILD_NUMBER}
           docker tag myapp:latest $IMAGE:latest
           docker push $IMAGE:${BUILD_NUMBER}
