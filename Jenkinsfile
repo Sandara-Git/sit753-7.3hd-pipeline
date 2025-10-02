@@ -34,6 +34,7 @@ pipeline {
 
           echo "== Run pytest inside the image =="
           docker run --rm \
+            -e TPATH="$TPATH" \
             -v "$PWD":/workspace \
             -w /workspace \
             myapp:latest \
@@ -41,8 +42,14 @@ pipeline {
               set -e
               python3 --version
               pip show pytest coverage || true
+
+              # run pytest; keep exit code for handling "no tests collected" (5)
               coverage run -m pytest -q "$TPATH" --junitxml=build/test-results/junit.xml || code=$?
+
+              # always try to emit coverage.xml
               coverage xml -o coverage.xml || true
+
+              # Treat "no tests collected" (5) as success so pipeline continues
               if [ "${code:-0}" = "5" ]; then
                 echo "No tests collected — continuing (scaffold mode)."
                 exit 0
@@ -50,6 +57,13 @@ pipeline {
                 exit "${code:-0}"
               fi
             '
+
+          # Host-side safety net: ensure files exist even if container didn’t write them
+          [ -f build/test-results/junit.xml ] || cat > build/test-results/junit.xml <<EOF
+    <?xml version="1.0" encoding="UTF-8"?>
+    <testsuite name="empty" tests="0" failures="0" errors="0" skipped="0"></testsuite>
+    EOF
+          [ -f coverage.xml ] || echo "<coverage/>" > coverage.xml
 
           echo "== After test run, show report files =="
           ls -la build/test-results || true
