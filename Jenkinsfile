@@ -20,31 +20,40 @@ pipeline {
         sh '''#!/usr/bin/env bash
           set -euo pipefail
 
-          echo "== Show test candidates =="
-          # no escaped parentheses; works fine with /bin/bash or /bin/sh
-          find . -maxdepth 3 -type f -name "test_*.py" -o -type f -name "*_test.py" -print || true
-          
-          echo "== Run tests with coverage inside container =="
-          mkdir -p tests/reports
+          echo "== Prepare reports dir =="
+          mkdir -p build/test-results
+
+          echo "== Detect tests path =="
+          TPATH="."
+          if [ -d tests ]; then
+            TPATH="tests"
+          elif [ -d app/tests ]; then
+            TPATH="app/tests"
+          fi
+          echo "Using TPATH=${TPATH}"
+
+          echo "== Run pytest inside the image =="
           docker run --rm \
             -v "$PWD":/workspace \
             -w /workspace \
             myapp:latest \
-            bash -lc "set -e
-                  python3 --version
-                  pip show pytest coverage || true
-                  coverage run -m pytest -q tests --junitxml=tests/reports/junit.xml || exit_code=\\$?
-                  coverage xml -o coverage.xml || true
-                  if [ \\\"\\${exit_code:-0}\\\" = \\\"5\\\" ]; then
-                    echo 'No tests collected — continuing (scaffold mode).'
-                    exit 0
-                  else
-                    exit \\\"\\${exit_code:-0}\\\"
-                  fi"
+            bash -lc '
+              set -e
+              python3 --version
+              pip show pytest coverage || true
+              coverage run -m pytest -q "$TPATH" --junitxml=build/test-results/junit.xml || code=$?
+              coverage xml -o coverage.xml || true
+              if [ "${code:-0}" = "5" ]; then
+                echo "No tests collected — continuing (scaffold mode)."
+                exit 0
+              else
+                exit "${code:-0}"
+              fi
+            '
 
-            echo "== After test run, show report files =="
-            ls -la tests/reports || true
-            ls -la coverage.xml || true
+          echo "== After test run, show report files =="
+          ls -la build/test-results || true
+          ls -la coverage.xml || true
         '''
       }
       post {
