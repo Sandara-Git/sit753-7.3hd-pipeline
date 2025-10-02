@@ -111,8 +111,7 @@ pipeline {
           docker compose up -d
           echo "== Health check (retry up to 30s) =="
           for i in $(seq 1 30); do
-            if curl -fsS http://localhost:8000/health >/dev/null 2>&1 || \
-              curl -fsS http://localhost:8000/        >/dev/null 2>&1; then
+            if curl -fsS "$URL_HEALTH" >/dev/null 2>&1 || curl -fsS "$URL_ROOT" >/dev/null 2>&1; then
               echo "App is up"
               exit 0
             fi
