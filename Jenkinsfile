@@ -58,7 +58,7 @@ pipeline {
       }
       post {
         always {
-          junit allowEmptyResults: true, testResults: 'tests/reports/junit.xml'
+          junit allowEmptyResults: true, testResults: 'build/test-results/junit.xml'
           archiveArtifacts artifacts: 'coverage.xml', allowEmptyArchive: true
         }
       }
@@ -70,7 +70,8 @@ pipeline {
         withSonarQubeEnv('local-sonar') {
           sh '''
             echo "== SonarQube scan =="
-            ${SCANNER_HOME}/bin/sonar-scanner -Dsonar.login=$SONAR_TOKEN
+            # sonar-scanner reads SONAR_HOST_URL/SONAR_TOKEN from withSonarQubeEnv/credentials
+            ${SCANNER_HOME}/bin/sonar-scanner
           '''
         }
       }
