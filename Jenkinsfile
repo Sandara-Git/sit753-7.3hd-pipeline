@@ -109,16 +109,31 @@ pipeline {
           echo "== Deploy to staging =="
           docker compose down || true
           docker compose up -d
+          # default URLs if env var is empty
+          URLS="${HEALTH_URLS:-http://localhost:8000/health http://localhost:8000/}"
           echo "== Health check (retry up to 30s) =="
+          echo "Checking URLs: ${URLS}"
+
+          ok=""
           for i in $(seq 1 30); do
-            if curl -fsS "$URL_HEALTH" >/dev/null 2>&1 || curl -fsS "$URL_ROOT" >/dev/null 2>&1; then
-              echo "App is up"
-              exit 0
-            fi
+            for u in ${URLS}; do
+              if curl -fsS "$u" >/dev/null 2>&1; then
+                echo "Healthy at: $u"
+                ok="yes"
+                break 2
+              fi
+            done
             sleep 1
           done
-          echo "App did not become healthy in time"
-          exit 1
+
+          if [[ -z "$ok" ]]; then
+            echo "App did not become healthy in time"
+            echo "== docker ps =="
+            docker ps
+              echo "== last 200 lines of app logs =="
+            docker compose logs --tail=200 || true
+            exit 1
+          fi
         '''
       }
     }
